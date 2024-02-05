@@ -1,0 +1,62 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Upload
+{% endblock %}
+
+
+{% block content %}
+{% include 'navbar.html' %}
+
+{% if message %}
+<div class="d-flex justify-content-center p-2">
+    <div class="alert alert-{% if success %}success{% else %}danger{% endif %} alert-dismissible fade show w-50" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+{% endif %}
+
+
+<div class="container">
+    <div class="d-flex flex-column align-items-center justify-content-center box">
+        <form id="data-upload-form" class="shadow-sm p-5 bg-body rounded" action="{% url 'upload' %}" method="post"
+            enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="tablename" class="form-label">Table name</label>
+                <input type="text" class="form-control" name="tablename" id="tablename"
+                    placeholder="Name of table without spaces and special characters">
+            </div>
+            <div class="mb-3">
+                <select id="file-type" name="file-type" class="form-select" aria-label="File type">
+                    <option value="geojson" selected>GeoJSON</option>
+                    <option value="shp">Shapefile</option>
+                    <option value="kml">KML</option>
+                    <option value="kg">Knowledge Graph</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <input placeholder="_" class="form-control" id="file" name="file" type="file" accept=".json,.geojson">
+            </div>
+            <div>
+                <input class="btn btn-primary" type="submit" value="Submit">
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block styles %}
+
+<link rel="stylesheet" href="{% static 'css/upload.css' %}">
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/upload.js' %}"></script>
+
+{% endblock %}

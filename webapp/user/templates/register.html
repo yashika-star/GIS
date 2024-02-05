@@ -1,0 +1,42 @@
+{% extends "master.html" %}
+
+{% block title %}
+Register
+{% endblock %}
+
+{% block content %}
+<div class="user-box d-flex justify-content-center align-items-center">
+    <div class="card m-3">
+        <div class="card-header">
+            <h3 class="text-center">Registration</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" action="{% url 'register' %}">
+                {% csrf_token %}
+                <div class="form-group mb-3">
+                    <label for="username">Username:</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="email">Email:</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="password">Password:</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" class="form-control" id="confirm-password" name="confirm-password" required>
+                </div>
+                <div class="form-group mb-3">
+                    <button type="submit" class="btn btn-primary btn-block">Register</button>
+                </div>
+            </form>
+            <div class="text-center">
+                <p>Already have an account? <a href="{% url 'login' %}">Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{
+	"version": "1.0.0",
+	"layername": "Railway_Scene_LoD3",
+	"fileextension": ".kml",
+	"displayform": "collada",
+	"minLodPixels": 0,
+	"maxLodPixels": -1,
+	"colnum": 1,
+	"rownum": 1,
+	"bbox":{ 
+		"xmin": 13.030094283965619,
+		"xmax": 13.035435568395208,
+		"ymin": 52.329647777025585,
+		"ymax": 52.33157239718179
+	}
+}

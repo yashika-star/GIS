@@ -1,0 +1,30 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+3d Viewer
+{% endblock %}
+
+
+{% block content %}
+{% include 'navbar.html' %}
+
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
+
+
+<div class="d-flex flex-column align-items-center justify-content-center box">
+    <div class="flex-grow-1 w-100">
+        <iframe title="3dcitydb-viewer" id="frame" src="http://localhost:8090/3dwebclient" width="100%" height="100%"></iframe>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{% block styles %}
+
+<link rel="stylesheet" href="{% static 'css/3dviewer.css' %}">
+
+{% endblock %}

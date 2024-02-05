@@ -1,0 +1,6 @@
+.vscode/
+.env
+help.txt
+ingestion_data
+
+**/.DS_Store

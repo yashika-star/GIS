@@ -1,0 +1,5 @@
+node_id,group,source,target,value,label
+Company A,1,Company A,Project X,1,Funding
+Company B,1,Company B,Project X,2,Collaboration
+Project X,2,Project X,Project Y,3,Partnership
+Project Y,2,Company B,Project Y,4,Support

@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  age-viewer:
+    image: calcun-age-viewer
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: npm run start
+    env_file:
+      - .env
+    ports:
+       - 8091:3000
+    restart: "on-failure"
+    networks:
+      - calcun-network
+
+networks:
+  calcun-network:
+    name: calcun-network
+    external: true
+    driver: bridge

@@ -1,0 +1,12 @@
+body {
+    max-height: 100vh;
+    overflow: hidden;
+}
+.box {
+    height: calc(100vh - 55px);
+}
+
+#map {
+    width: 100%;
+    height: 80vh;
+}

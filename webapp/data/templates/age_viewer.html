@@ -1,0 +1,28 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Age Viewer
+{% endblock %}
+
+
+{% block content %}
+{% include 'navbar.html' %}
+
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
+
+<div class="d-flex flex-column align-items-center justify-content-center box mt-2">
+    <div class="flex-grow-1 w-100">
+        <iframe title="age-viewer" id="frame" src="http://localhost:8091" width="100%" height="100%"></iframe>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block styles %}
+
+<link rel="stylesheet" href="{% static 'css/age_viewer.css' %}">
+
+{% endblock %}

@@ -1,0 +1,625 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+    Scene
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel='stylesheet' type='text/css' href="{% static './css/x3dom.css' %}"/>
+    <link rel='stylesheet' type='text/css' href="{% static './css/Anna.css' %}"/>
+    <link rel='stylesheet' type='text/css' href="{% static './css/Perg.css' %}"/>
+    <script type='text/javascript' src="{% static './js/x3dom-full.js' %}"></script>
+    <style>
+        .x3dom-logContainer {
+            bottom: 0px;
+            position: absolute;
+        }
+
+        .panel {
+            font-family: Arial;
+            font-size: smaller;
+            cursor: move;
+            border-radius: 13px;
+        }
+
+        .td {
+            font-family: Arial;
+            font-size: smaller;
+        }
+
+        .stuff {
+            font-family: Arial;
+            font-size: smaller;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+    </style>
+    <script>
+
+
+        /**
+         * Adds listeners to DOM elements via addEventListener,
+         * which might be necessary in order to register to events during the
+         * capture phase (instead of the default bubbling phase).
+         */
+        function addMissingListeners() {
+            document.body.addEventListener('mousemove', mouseMoved, true);
+        }
+
+
+        //----------------------------------------------------------------------------------------------------------------------
+
+        /*
+         * Switches view frustum culling on or off.
+         */
+        function toggleFrustumCulling(enabled) {
+            var envElem = document.getElementById('x3dEnvironment');
+            envElem.setAttribute("frustumCulling", enabled);
+        }
+
+
+        // a usability recommendation: provide visual feedback for users about interaction modes   /// * esp Navigation!
+        // on load, report the current bound NavInfo type on screen in a DIV -> p
+        //var runtime = null, scene = null;
+
+        var $element;
+        var debug = false;
+        var pick_mode_info;
+        var nav_mode_info;
+        var ab_info;
+
+        function init() {
+            $element = document.getElementById('x3dElement');
+            updateAbInfo('Viewpoint');
+            //  dragElement(document.getElementById("Data_Toolbox"));
+            //  dragElement(document.getElementById("Network_Toolbox"));
+            //  dragElement(document.getElementById("InfoVis_Toolbox"));
+
+            //updateNavInfo();
+
+        }
+
+        function updateNavInfo() {
+            $element = document.getElementById('x3dElement');
+            var bindable = $element.runtime.getActiveBindable('NavigationInfo');
+            console.log(bindable);
+            var thisNode = document.getElementById('navType');
+            if (bindable.getAttribute('type')[0] == 'Examine') {
+                thisNode.setFieldValue('speed', .5);
+                console.log('examine');
+            } else {
+                thisNode.setFieldValue('speed', 15)
+                console.log('other');
+            }
+            ;
+            ab_info = document.getElementById('tip');
+            ab_info.innerHTML = bindable.tagName + " / " + bindable.getAttribute('type');
+        }
+
+        function updateAbInfo(typeName) {
+            $element = document.getElementById('x3dElement');
+            var bindable = $element.runtime.getActiveBindable(typeName);
+            ab_info = document.getElementById('ab_info');
+            ab_info.innerHTML = bindable.tagName + " / " + bindable.getAttribute('description');
+        }
+
+
+        /* Set the width of the sidebar to 250px (show it) */
+        function panelTray(me, meC, content) {
+            let myPanel = document.getElementById(me);
+            let myCheck = document.getElementById(meC);
+            let myContent = document.getElementById(content);
+
+            myPanel.style.position = "fixed";
+
+            if (myCheck.checked != true) {
+                myPanel.style.position = "fixed";
+                myPanel.style.width = "160px";
+                myPanel.style.height = "40px";
+                myContent.style.height = "0px";
+                myContent.style.visibility = "hidden";
+
+
+                switch (me) {
+                    case 'Data_Toolbox':
+                        myPanel.style.position = "fixed";
+                        myPanel.style.top = "250px";
+                        myPanel.style.left = "1500px";
+                        break;
+                    case 'Network_Toolbox':
+                        myPanel.style.position = "fixed";
+                        myPanel.style.top = "400px";
+                        myPanel.style.left = "1500px";
+                        break;
+                    case 'InfoVis_Toolbox':
+                        myPanel.style.position = "fixed";
+                        myPanel.style.top = "650px";
+                        myPanel.style.left = "1500px";
+                        break;
+
+
+                }
+
+            } else {
+                myPanel.style.position = "fixed";
+                myPanel.style.top = "280px";
+                myPanel.style.left = "280px";
+                myPanel.style.height = "556px";
+                myPanel.style.width = "1046px";
+
+                myContent.style.height = "540px";
+                myContent.style.height = "512px";
+                myContent.style.width = "1024px";
+                myContent.style.visibility = "visible";
+            }
+
+        }
+
+        /* Set the width of the sidebar to 250px (show it) */
+        function bottomTray(me, meC, content) {
+            let myPanel = document.getElementById(me);
+            let myCheck = document.getElementById(meC);
+            let myContent = document.getElementById(content);
+            myPanel.style.position = "fixed";
+            if (myCheck.checked != true) {
+
+                myPanel.style.position = "fixed";
+                myPanel.style.height = "24px";
+                myPanel.style.width = "160px";
+                myPanel.style.left = "0px";
+                myPanel.style.top = "800px";
+                myContent.style.height = "0px";
+                myContent.style.visibility = "hidden";
+            } else {
+                myPanel.style.position = "fixed";
+                myPanel.style.top = "280px";
+                myPanel.style.left = "280px";
+                myPanel.style.height = "556px";
+                myPanel.style.width = "1046px";
+
+                myContent.style.top = "24px";
+                myContent.style.left = "8px";
+                myContent.style.height = "512px";
+                myContent.style.width = "1024px";
+                myContent.style.visibility = "visible";
+            }
+
+        }
+
+
+        function changeWaterLevel() {
+            var box = document.getElementById("WaterVert");
+            var water = document.getElementById("WaterLevel");
+
+            water.setAttribute('translation', '0 ' + box.value + ' 0');
+        }
+
+
+        function shapeSwitch(id) {          //  for non SPIDERs UI
+            var sw = document.getElementById(id);
+            var on = 0;
+            var off = 1;
+
+            if (sw.getAttribute('whichChoice') == off) {
+                sw.setAttribute('whichChoice', on);
+                //alert ("The "+sw.id+" choice is now set with 1");
+            } else {
+                sw.setAttribute('whichChoice', off);
+                //alert ("The "+sw.id+" choice is now set with 0");
+            }
+        }
+
+        //Round a float value to x.xx format
+        function roundWithTwoDecimals(value) {
+            return (Math.round(value * 100)) / 100;
+        }
+
+        function STransformer(node) {
+            console.log(node);
+            var myG = document.getElementById(id);
+
+            //Round a float value to x.xx format
+            function roundWithTwoDecimals(value) {
+                return (Math.round(value * 100)) / 100;
+            }
+
+
+        }
+
+    </script>
+
+
+    <script>
+        function SetNavType(vpId) {
+
+            var vp = document.getElementById(vpId);
+
+            var ni = document.getElementById(vpId + "Ni");
+            vp.setAttribute("set_bind", "true");
+
+            ni.setAttribute("set_bind", "true");
+
+        }
+
+    </script>
+
+{% endblock %}
+{% block content %}
+    {% include 'navbar.html' %}
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+
+    <div id='HUDs_Div'>
+
+        <!--    ------------------------ switching UI  -------------------------  -->
+
+        <div id='X3DOM_AOPT_Links' class='panel'
+             style='margin:2px 2px 2px; border:1; padding:4px; background-color:rgba(199,202,204,.7); position:absolute; z-index:1000; top:0px;'>
+
+
+            <h2>
+                Digital Twin</br>
+                Example UI<br>
+
+            </h2>
+            Basic Elements, 2023
+
+            <hr>
+
+            <h3>Show Layers</h3>
+            <!--    CHECKBoxes
+      <input type="range" min="0" max="5" value="0" step='.2' class="slider" id="myRange">
+      Show Buildings <br> -->
+
+            <input type="checkbox" onclick="shapeSwitch('roads')" id="pcldr" unchecked/> <label
+                for="pcldr"></label>Roads</label> <br>
+
+            <input type="checkbox" onclick="shapeSwitch('structures')" id="pcldss" checked/> <label
+                for="pcldss"></label>Buildings</label> <br>
+
+            <input type="checkbox" onclick="shapeSwitch('terrain')" id="pcldt" checked/> <label
+                for="pcldt"></label>Terrain</label> <br>
+
+            <input type="checkbox" onclick="shapeSwitch('SeaLev')" id="pcldt" checked/> <label for="pcldt"></label>Flood
+            Water</label> <br>
+            <!--
+      <input type="checkbox" onclick="shapeSwitch('SeaLev')" id="sl" checked/> <label for="sl"></label>Sea Level</label> <br>
+       -->
+
+            <hr>
+
+        </div>
+
+
+        <!--    ------------------------ Sea Level and Mitigation UI  -------------------------  -->
+
+
+        <div class='panel' id='Interaction_Toolbox'
+             style='margin:2px; border:1; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.7); position:absolute; z-index:1000; right:0px; top:0px;'>
+            <table>
+
+
+                <tr>
+                    <td colspan='2'>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan='2'>
+                        <hr>
+                        <span id="ab_info"></span>
+                    </td>
+                </tr>
+                <td>
+                    <bold>
+
+                    </bold>
+                </td>
+                <td valign="bottom" halign='right'>
+                    <center><img src='./logos/Logo.jpg' width='60'/> <br>
+                        <button onclick="$element.runtime.prevView();updateAbInfo('Viewpoint');return false;">BACK
+                        </button>
+                        <button
+                                onclick="$element.runtime.nextView();updateAbInfo('Viewpoint');return false;">FWD
+                        </button>
+                        <p>
+                            <button onclick="$element.runtime.uprightView();return false;">Get Upright</button>
+                        <p>
+                    </center>
+                </td>
+                </tr>
+
+                <tr>
+                    <td colspan='2'>
+                        <!-- <hr>
+                   Your Navigation mode is: <p id='tip'></p>   -->
+                        <hr>
+                        <b> Sea Level Control</b> <input id='WaterVert' type='number' min='-8' max='40' step='.25'
+                                                         value='0'
+                                                         style='width: 56px' onchange="changeWaterLevel();">
+                    </td>
+                </tr>
+                <!--
+        <tr>
+          <td>
+          <h4> Current View:
+           </h4><p id='tip2'></p> </td>
+        <td halign='right' valign='bottom'></td>
+        </tr>  -->
+
+
+            </table>
+
+        </div>
+
+
+        <!--    ------------------------  Data DetailView -------------------------  -->
+        <div class='panel' id='Data_Toolbox'
+             style='margin:2px; border:1; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.6); position:absolute; z-index:1000; right:0px; top: 250px;'>
+
+            <h3><input type="checkbox" onclick="panelTray('Data_Toolbox','DataPanel','table_view')" id="DataPanel"
+                       unchecked/> <label for="DataPanel"></label> Data Detail View </label>
+            </h3>
+            <div id='table_view' class='stuff'
+                 style='margin:2px; border:1; visibility:hidden;  padding:4px 10px 4px 4px; background-color:rgba(199,202,204,1); position:absolute; width:600; height:0; left:0px; top:40px;'>
+                <p></p>
+                <img src='./img/qgis_feature_identify_examplecut.PNG' width='820' height='490'/>
+            </div>
+
+        </div>
+
+
+        <!--    ------------------------  Network View -------------------------  -->
+        <div class='panel' id='Network_Toolbox'
+             style='margin:2px; border:1; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.6); position:absolute; z-index:1000; right:0px; top:370px;'>
+            <h3><input type="checkbox" onclick="panelTray('Network_Toolbox','NetPanel','d3_view')" id="NetPanel"
+                       unchecked/>
+                <label for="NetPanel"></label> Network View </label>
+            </h3>
+            <div id='d3_view' class='stuff'
+                 style='margin:2px; border:1; visibility:hidden;  padding:4px 10px 4px 4px; background-color:rgba(199,202,204,1); position:absolute; width:600; height:0; left:0px; top:40px;'>
+                <p></p> <!-- <img src='./img/kg1.png' width = '792' height='474'  height="494"/>   -->
+                <iframe src="./I-C3/I-C3_KG.html" height="490" width="1020" title="Iframe Example"></iframe>
+
+            </div>
+
+        </div>
+
+
+        <!--    ------------------------Infovis   View -------------------------  -->
+        <div class='panel' id='InfoVis_Toolbox'
+             style='margin:2px; border:1; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.6); position:absolute; z-index:1000; right:0px; bottom:240px;'>
+            <h3><input type="checkbox" onclick="panelTray('InfoVis_Toolbox','InfoVisPanel','InfoVis_view')"
+                       id="InfoVisPanel"
+                       unchecked/> <label for="InfoVisPanel"></label> Info Vis View </label>
+            </h3>
+            <div id='InfoVis_view'
+                 style='margin:2px; border:1; visibility:hidden;  padding:4px 10px 4px 4px; background-color:rgba(199,202,204,1); position:absolute; width:600; height:0; left:0px; top:40px;'>
+                <img src='./I-C3/CUI_KeyMilstonessummary.png' height='400' width='1020'/>
+
+            </div>
+
+
+        </div>
+
+
+        <!--    ------------------------ Footer UI -------------------------  -->
+        <div class='panel' id='TimeSeries_Toolbox'
+             style='margin:2px; border:1; width:100%; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.6); position:absolute; z-index:1000; left:0px; bottom:0px; width:166px'>
+            <div id='fheafer'>
+
+                <div style='left:0px; font-weight: bold; '>
+                    <input type="checkbox"
+                           onclick="bottomTray('TimeSeries_Toolbox','TimeSeriesPanel','TimeSeries_view')"
+                           id="TimeSeriesPanel" unchecked/> <label for="TimeSeriesPanel"></label>TimeSeries
+                    View </label>
+                </div>
+
+
+            </div>
+
+
+            <div class='panel' id='TimeSeries_view'
+                 style='margin:2px; border:1; visibility:hidden;  padding:4px 10px 4px 4px; background-color:rgba(199,202,204,1); position:absolute; width:1024; height:0; left:0px; top:40px;'>
+                <iframe src="./I-C3/I-C3_milestones3d.html" height="494" width="1020" title="Iframe Example"></iframe>
+            </div>
+
+        </div>
+
+
+        <div
+                style='margin:2px; border:1; width:10%; padding:4px 10px 4px 4px; background-color:rgba(199,202,204,.6); position:absolute; z-index:1001; right:0px; bottom:0px;'>
+            <b>Debug: </b>
+            <input type='checkbox'
+                   onclick='document.getElementById(&apos;x3dElement&apos;).runtime.statistics(this.checked);'>
+            </input> Stats
+            <input type='checkbox' onclick='document.getElementById(&apos;x3dElement&apos;).runtime.debug();'>
+            </input> Log
+            <!--    | <button type='button' >Screenshot</button></td>
+                          <h3>Your Navigation Mode is: </h3>
+                      <p id='tip'></p>-->
+        </div>
+
+
+    </div>
+
+    <div class='panel'
+         style='left:50%; text-align: center;vertical-align: bottom; z-index:1001; width:380; bottom:0px background-color:rgba(199,202,204,.6);'>
+        <b> Local Scene </b>
+        <div>
+            <span id='UTMInfo'></span><br>
+            <!-- <span id='GDInfo'>Doubleclick to recenter</span>    -->
+        </div>
+
+    </div>
+
+    </div>
+    <!--    ------------------------  THE COMPOSED X3D Model -------------------------  -->
+
+
+    <x3d id='x3dElement' showStat='false' showLog='false'
+         style='width:96%; height:100%; border:0; margin:0; padding:0;'>
+        <scene id='x3dScene'>
+            <!--
+          onclick="mouseClickedInScene(event)"     onmousemove="mouseMovedInScene(event)"  onmousemove="showCoords(event)"  -->
+
+            <!--
+        <GeoLocation geoSystem =  '"UTM" "Z55" "N" "easting_first"' geoCoords='-268115.002 0 1503106.564'>
+      -->
+
+            <environment id="gamma" gammaCorrectionDefault="fastLinear" frustumCulling='false'
+                         smallFeatureCulling='false'
+                         lowPriorityCulling='false' lowPriorityThreshold='.2'></environment>
+            <background groundColor='0 0 0' skyColor='0.329412 0.458824 0.945098'
+                        backUrl="{%static './skyboxes/afternoon/back.jpg' %}"
+                        frontUrl="{%static './skyboxes/afternoon/front.jpg' %}" leftUrl="{%static './skyboxes/afternoon/left.jpg' %}"
+                        rightUrl="{%static './skyboxes/afternoon/right.jpg' %}" topUrl="{%static './skyboxes/afternoon/right.jpg' %}"></background>
+
+
+            <Viewpoint description='CloseUp' position="-0.82847 1.40032 9.86675"
+                       orientation="-0.85667 -0.51246 -0.05914 0.16372" zNear="0.84973" zFar="10000"
+                       centerOfRotation="0.00000 0.00000 0.00000" fieldOfView="0.78540"
+                       description="defaultX3DViewpointNode">
+            </Viewpoint>
+
+            <Viewpoint position="-324.86502 2125.80502 3609.99311" orientation="-0.98506 -0.16431 -0.05153 0.53733"
+                       zNear="0.84973" zFar="10000.00000" centerOfRotation="-1.27934 0.50624 -4.19077"
+                       fieldOfView="0.78540"
+                       description="Far Away"></Viewpoint>
+            <!--
+
+              <Viewpoint position="266120.83746 2084.41468 -1500770.30132" orientation="-0.76451 -0.63462 -0.11302 0.89089"
+              zNear="1" zFar="26700" centerOfRotation="-5223630.142158246 3669799.901880834 1503074.3216476545" fieldOfView="0.78540" description="defaultX3DViewpointNode"></Viewpoint>
+       -->
+            <navigationInfo DEF='nav1' id="navType" headlight='false' transitionTime='6' type='"EXAMINE" "ANY"'
+                            speed='.3'>
+            </navigationInfo>
+            <navigationInfo DEF='nav2' id="navType2" headlight='false' transitionTime='6' type='"FlY" "ANY"' speed='16'>
+            </navigationInfo>
+            <navigationInfo DEF='nav3' id="navType3" headlight='false' transitionTime='6' type='"Walk" "ANY"' speed='3'>
+            </navigationInfo>
+
+            <!--     <directionalLight intensity='0.05' direction='-0.7 -0.7 -0.7'></directionalLight>  avatarSize='0.82021 5.24934 2.46063'
+              <directionalLight intensity='0.05' direction='-0.7 -0.7 0.7'></directionalLight>
+              <directionalLight intensity='0.05' direction='0.6 -0.8 0.8'></directionalLight>
+              <directionalLight intensity='0.05' direction='-0.9 -1 -0.8'></directionalLight>
+                  <viewpoint description='OverviewOriginal' orientation='-.4 .84 .25 1.12' position='0 1.6 10' ></viewpoint>
+              <viewpoint description='Overview1' orientation='-.43 .86 .27 1.125' position=' 0 1.6 20' ></viewpoint>
+
+
+
+       -->
+            <directionalLight intensity='0.5' direction='-.92 0.04 -0.2'></directionalLight>
+            <directionalLight intensity='0.5' direction='.92 -0.04 -0.2'></directionalLight>
+            <directionalLight intensity='0.5' direction='.04 -.92 -0.2'></directionalLight>
+            <directionalLight intensity='0.5' direction='-0.04 .92 0.2'></directionalLight>
+
+            <PointLight intensity='.6' location='0 20 40'></PointLight>
+
+
+            <!-- SCENE OBJECTS   -->
+
+
+            <transform translation='0 0 0'>
+
+
+                <!--    ------------------------  something to serve as a low visual plane -------------------------       -->
+
+                <transform translation='0 -20 0'>
+                    <shape DEF='low'>
+                        <appearance>
+                            <material DEF='blk' diffuseColor='0 0 0' shininess='0' transparency='0.1'></material>
+                        </appearance>
+                        <box size='10000 1 10000'></box>
+
+                    </shape>
+                </transform>
+
+                <transform id='WaterLevel'>
+                    <switch id='SeaLev' whichChoice='0'>
+                        <transform id='SeaLevel' DEF='SeaLevel' translation='0 0 0'>
+                            <inline url="{% static './AScene1/water.x3d' %}"></inline>
+                        </transform>
+                        <group>
+
+                        </group>
+                    </switch>
+                </transform>
+                <switch id='terrain' whichChoice='0'>
+                    <transform translation='0 1 0'>
+                        <inline url="{% static './AScene1/flat.x3d' %}"></inline>
+                    </transform>
+
+                    <group></group> <!-- empty -->
+                </switch>
+
+                <transform>
+
+
+                    <switch id='roads' whichChoice='1'>
+                        <transform translation='0 0.1 0'>
+
+                            <transform id='r_02t' translation='0 1 0'>
+                                <inline id='r_02i' url="{% static './AScene1/road.x3d' %}"></inline>
+                            </transform>
+
+                            <transform id='r_6t' translation='40 1 0'>
+                                <inline id='r_6i' url="{% static './AScene1/road.x3d' %}"></inline>
+                            </transform>
+
+                            <!-- MORE ROAD ITEMS HERE ... -->
+
+                        </transform>
+
+                        <group></group> <!-- empty -->
+
+                    </switch>
+
+
+                    <switch id='structures' whichChoice='0'>
+                        <transform translation='0 0 0'>
+
+                            <transform id='blg_0035t' translation='0 1 0'>
+                                <LOD range='50'>
+                                    "{% static './css/Anna.css' %}"
+                                    <inline id='blg_0035_lod3' url="{% static './AScene1/building.x3d' %}"></inline>
+                                    <inline id='blg_0035_lod3' url="{% static './AScene1/building_lod1.x3d' %}"></inline>
+                                </LOD>
+                            </transform>
+
+
+                            <transform id='blg_0036t' translation='40 0 0'>
+                                <LOD range='50'>
+                                    <inline id='blg_0036_lod3' url="{% static './AScene1/building.x3d' %}"></inline>
+                                    <inline id='blg_0036_lod3' url="{% static './AScene1/building_lod1.x3d' %}"></inline>
+                                </LOD>
+                            </transform>
+
+
+                            <!-- MORE BUILDINGs ITEMS HERE ... -->
+
+                        </transform>
+
+                        <group></group> <!-- empty -->
+                    </switch>
+
+
+                </transform>
+
+
+            </transform>
+
+            <!--    </GeoLocation>
+
+            -->
+
+        </scene>
+    </x3d>
+
+
+{% endblock %}

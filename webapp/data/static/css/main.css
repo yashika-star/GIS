@@ -1,0 +1,18 @@
+body {
+    margin: 0;
+    font-family: verdana;
+}
+
+::-webkit-input-placeholder {
+    font-size: 13px !important;
+}
+
+:-moz-placeholder {
+    /* Firefox 18- */
+    font-size: 13px !important;
+}
+
+::-moz-placeholder {
+    /* Firefox 19+ */
+    font-size: 13px !important;
+}

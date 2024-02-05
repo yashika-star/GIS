@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  geodjango:
+    image: calcun-geodjango
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: python manage.py runserver 0.0.0.0:8080
+    volumes:
+      - .:/app
+      - ingestion-data:/ingestion_data
+    # ports:
+    #    - 8000:8080
+    env_file:
+      - .env
+    restart: "on-failure"
+    networks:
+      - calcun-network
+
+  nginx:
+    image: calcun-nginx
+    restart: always
+    depends_on:
+      - geodjango
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.dev
+    ports:
+      - 8080:80
+    networks:
+      - calcun-network
+
+networks:
+  calcun-network:
+    name: calcun-network
+    external: true
+    driver: bridge
+
+volumes:
+  ingestion-data:
+    name: calcun-ingestion-volume
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./../ingestion_data

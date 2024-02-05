@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  db-pg:
+    image: calcun-db-pg
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+      # args: # This is for Dockerfile.dev
+      #   - POSTGRES_USER=${POSTGRES_USER}
+      #   - POSTGRES_PASSWORD=${POSTGRES_PASS}
+      #   - POSTGRES_DB=${POSTGRES_DBNAME}
+      #   - POSTGIS_SFCGAL=true
+      #   - SRID=4326
+      #   - HEIGHT_EPSG=4326
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - db-pg-data:/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASS}
+      - POSTGRES_DB=${POSTGRES_DBNAME}
+      - POSTGIS_SFCGAL=true
+      - SRID=3068
+      - HEIGHT_EPSG=5783
+      - POSTGRES_SU=${POSTGRES_SUPER_USER}
+      - POSTGRES_SUP=${POSTGRES_SUPER_USER_PASS}
+    restart: "on-failure"
+    networks:
+      - calcun-network
+
+networks:
+  calcun-network:
+    name: calcun-network
+    driver: bridge
+
+volumes:
+  db-pg-data:
+    name: calcun-db-pg-volume

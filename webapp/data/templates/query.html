@@ -1,0 +1,104 @@
+{% extends "master.html" %}
+{% load static %}
+
+{% block title %}
+Query
+{% endblock %}
+
+
+{% block content %}
+{% include 'navbar.html' %}
+
+<div class="container">
+    <div class="d-flex flex-column justify-content-center box">
+        <div class="w-100 my-3 shadow-sm p-3 bg-body rounded">
+            <div class="alert alert-info" role="alert">
+                Click table button to load all data from that table.
+              </div>
+            {% if table_list_error %}
+            <span class="text-danger">{{ table_list_error }}</span>
+            {% endif %}
+            {% if tables %}
+            {% for table in tables %}
+            <button type="button" class="btn btn-outline-secondary table-btn mb-1">
+                <span>{{ table.0 }}</span>
+                {% if table.1 %}
+                <span class="badge rounded-pill alert-info">{{ table.1 }}</span>
+                {% endif %}
+            </button>
+            {% endfor %}
+            {% else %}
+            <span>No tables found</span>
+            {% endif %}
+        </div>
+
+        <form id="data-query-form" class="w-100 my-3 shadow-sm p-3 bg-body rounded" action="{% url 'query' %}" method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="sql" class="form-label">
+                    <h5>SQL Query</h5>
+                </label>
+                <textarea class="form-control" name="sql" id="sql" placeholder="Write SQL query"
+                    rows="3">{% if query %}{{ query }}{% endif %}</textarea>
+            </div>
+            <div class="d-flex">
+                <input class="btn btn-primary" type="submit" value="Execute">
+                <input type="file" id="upload-sql-file-input" class="form-control ms-3 w-25" title="Upload SQL File" value="Upload SQL File" accept=".sql,.txt" >
+            </div>
+        </form>
+
+        {% if table_error %}
+        <div class="my-3 shadow-sm p-3 bg-body rounded">
+            <span class="text-danger">{{ table_error }}</span>
+        </div>
+        {% endif %}
+        {% if message %}
+        <div class="my-3 shadow-sm p-3 bg-body rounded">
+            <span class="text-success">{{ message }}</span>
+        </div>
+        {% endif %}
+        {% if columns %}
+        <div class="my-3 shadow-sm p-3 bg-body rounded">
+            <h5>Query Result</h5>
+            <div class="w-100 table-responsive">
+                <table class="table table-bordered">
+                    <thead class="table-light">
+                        <tr>
+                            {% for column in columns %}
+                            <th>{{ column }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if rows %}
+                        {% for row in rows %}
+                        <tr>
+                            {% for d in row %}
+                            <td>{{ d }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr><td style="text-align: center;" colspan="{{ columns|length }}">No record found</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block styles %}
+
+<link rel="stylesheet" href="{% static 'css/query.css' %}">
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/query.js' %}"></script>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+# Base image
+ARG POSTGIS_TAG='15-3.4'
+FROM postgis/postgis:${POSTGIS_TAG}
+
+# Set labels
+LABEL maintainer="Muhammad Abdullah"
+LABEL maintainer.email="spaciandd@gmail.com"
+LABEL description="Development image for postgresql with 3dcitydb"
+
+######## START: For production we create non user and execute commands with this user ########
+# # Create the non-root user (BusyBox adduser syntax)
+# RUN adduser -S -D -H nonroot
+# # Create the data directory
+# RUN mkdir /data && chown nonroot /data
+# # Switch to the non-root user only to run the actual container
+######## END: For production we create non user and execute commands with this user ########
+
+# ARG POSTGRES_USER=calcun
+# ARG POSTGRES_PASSWORD=
+# ARG POSTGRES_DB=citydb
+# ARG POSTGIS_SFCGAL=true
+# ARG SRID=4326
+# ARG HEIGHT_EPSG=4326
+
+# RUN echo "Access ARGS at build time ---> $POSTGRES_DB"
+
+
+RUN apt-get update && apt-get -y install git build-essential postgresql-server-dev-15
+
+RUN git clone --single-branch --depth 1 https://github.com/citusdata/pg_cron.git
+RUN cd pg_cron && make && make install
+
+RUN apt-get update && apt-get -y install libreadline-dev zlib1g-dev bison flex
+
+RUN git clone -b 'release/PG15/1.4.0' --single-branch --depth 1 https://github.com/apache/age.git
+
+RUN cd age && git checkout release/PG15/1.4.0 && make PG_CONFIG=/usr/bin/pg_config install
+
+RUN cd / && \
+        rm -rf /pg_cron && \
+        rm -rf /age && \
+        apt-get remove -y git libreadline-dev zlib1g-dev bison flex build-essential postgresql-server-dev-15 && \
+        apt-get autoremove --purge -y && \
+        apt-get clean && \
+        apt-get purge
+
+# Install pgRouting for postgres
+RUN apt-get update && apt-get install -y \
+    postgresql-15-pgrouting \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set 3DCityDB version
+ARG citydb_version='4.4.0'
+ENV CITYDBVERSION=${citydb_version}
+
+COPY /scripts/SQLScripts /3dcitydb
+COPY /scripts/DockerScripts/ /docker-entrypoint-initdb.d/
+
+# Copy postgresql config files and change postgres configuration
+COPY /postgresql/ /etc/postgresql/
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf", "-c", "hba_file=/etc/postgresql/pg_hba.conf"]

@@ -1,0 +1,38 @@
+FROM python:3.10.8-slim-bullseye
+
+WORKDIR /app
+
+LABEL maintainer="spaciandd@gmail.com"
+LABEL description="Development image for GeoDjango"
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK 1
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+RUN apt-get update \
+    && apt-get -y install libpq-dev gcc \
+    && apt-get clean
+
+# Install PostgreSQL and PostGIS dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        postgresql-client \
+        postgresql \
+        postgis \
+        && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update \
+    && apt-get install -y binutils libproj-dev gdal-bin python3-gdal
+
+RUN pip install --upgrade pip setuptools wheel
+
+COPY ./requirements.txt /app/requirements.txt
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Following command for re-installing all packages
+# RUN pip install --ignore-installed --no-cache-dir -r requirements.txt
+
+COPY . /app
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
