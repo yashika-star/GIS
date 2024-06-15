@@ -1,4 +1,4 @@
-FROM nginx:1.19-alpine
+FROM nginx:1.26.1-alpine
 
 LABEL maintainer="spaciandd@gmail.com"
 LABEL description="Development image for Nginx"
