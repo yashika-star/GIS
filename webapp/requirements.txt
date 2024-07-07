@@ -4,7 +4,7 @@ apache-age-python==0.0.7
 asgiref==3.7.2
 attrs==23.1.0
 beautifulsoup4==4.12.2
-certifi==2023.7.22
+certifi==2024.7.4
 click==8.1.7
 click-plugins==1.1.1
 cligj==0.7.2
